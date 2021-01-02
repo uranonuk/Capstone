@@ -44,18 +44,28 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtGui.QVBoxLayout(self.frame)
         self.verticalLayout.setContentsMargins(0,0,0,0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+
         self.label = QtGui.QLabel(self.frame)
         self.label.setObjectName(_fromUtf8("label"))
         self.verticalLayout.addWidget(self.label)
         self.grFFT = PlotWidget(self.frame)
         self.grFFT.setObjectName(_fromUtf8("grFFT"))
         self.verticalLayout.addWidget(self.grFFT)
+
         self.label_2 = QtGui.QLabel(self.frame)
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.verticalLayout.addWidget(self.label_2)
         self.grPCM = PlotWidget(self.frame)
         self.grPCM.setObjectName(_fromUtf8("grPCM"))
         self.verticalLayout.addWidget(self.grPCM)
+
+        #self.label_3 = QtGui.QLabel(self.frame)
+        #self.label_3.setObjectName(_fromUtf8("label_3"))
+        #self.verticalLayout.addWidget(self.label_3)
+        #self.grSaw = PlotWidget(self.frame)
+        #self.grSaw.setObjectName(_fromUtf8("grSaw"))
+        #self.verticalLayout.addWidget(self.grSaw)
+        
         self.horizontalLayout.addWidget(self.frame)
         MainWindow.setCentralWidget(self.centralwidget)
 
