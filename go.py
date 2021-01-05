@@ -1,5 +1,6 @@
 from PyQt5 import QtGui,QtCore
 from pydub import generators, utils
+from signal_generation import generate_wave
 import sys
 import ui_main
 import numpy as np
@@ -23,9 +24,8 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         #self.maxSaw=0
         self.ear = SWHear.SWHear(rate=self.rate, updatesPerSecond=self.updatesPerSecond)
         self.ear.stream_start()
-        self.generationFreq = 10
-        self.sawtooth = generators.Sawtooth(freq=self.generationFreq).to_audio_segment()
-        self.sawtooth.export("./generated_signals/demo1.wav", format="wav")
+        self.sawtooth = generate_wave('sawtooth')
+        print(self.sawtooth)
 
     def update(self):
         if not self.ear.data is None and not self.ear.fft is None:
