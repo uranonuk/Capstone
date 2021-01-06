@@ -58,7 +58,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.grPCM)
         self.horizontalLayout.addWidget(self.frame)
         MainWindow.setCentralWidget(self.centralwidget)
-
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
