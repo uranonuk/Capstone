@@ -1,22 +1,31 @@
 from PyQt5 import QtGui,QtCore
-
+from pydub import generators, utils
+from signal_generation import generate_wave
 import sys
 import ui_main
 import numpy as np
 import pyqtgraph
 import SWHear
 
+
+
 class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
     def __init__(self, parent=None):
         pyqtgraph.setConfigOption('background', 'w') #before loading widget
         super(ExampleApp, self).__init__(parent)
         self.setupUi(self)
+        self.updatesPerSecond = 20
+        self.rate = 44100
         self.grFFT.plotItem.showGrid(True, True, 0.7)
         self.grPCM.plotItem.showGrid(True, True, 0.7)
+        #self.grSaw.plotItem.showGrid(True, True, 0.7)
         self.maxFFT=0
         self.maxPCM=0
-        self.ear = SWHear.SWHear(rate=44100,updatesPerSecond=20)
+        #self.maxSaw=0
+        self.ear = SWHear.SWHear(rate=self.rate, updatesPerSecond=self.updatesPerSecond)
         self.ear.stream_start()
+        self.sawtooth = generate_wave('sawtooth')
+        print(self.sawtooth)
 
     def update(self):
         if not self.ear.data is None and not self.ear.fft is None:
@@ -33,6 +42,10 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
             pen=pyqtgraph.mkPen(color='r')
             self.grFFT.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
+            pen=pyqtgraph.mkPen(color='g')
+            #self.grSaw.plot(self.sawtooth.get_frame(0))
+            
+            
         QtCore.QTimer.singleShot(1, self.update) # QUICKLY repeat
 
 if __name__=="__main__":
