@@ -9,6 +9,7 @@ import SWHear
 class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
     
     # Core initial app structure
+
     def __init__(self, parent=None):
         pyqtgraph.setConfigOption('background', 'w') #before loading widget
         
@@ -30,7 +31,6 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         '''
         
         # Main menu bar
-
         extractAction = QtGui.QAction("&Force Quit", self) # Name
         extractAction.setShortcut("Ctrl+Q") # Shortcut
         extractAction.triggered.connect(self.close_application) # Event when pressed
@@ -47,6 +47,8 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         
     # Home page
     def home(self):
+        
+        '''
         quit_btn = QtGui.QPushButton("Quit", self)
         quit_btn.clicked.connect(self.close_application)
 
@@ -65,7 +67,7 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         # checkBox.toggle() # Changes the default toggle setting
         checkBox.stateChanged.connect(self.enlarge_window)
         
-        '''
+        
         # Progress Bar
         self.progress = QtGui.QProgressBar(self)
         self.progress.setGeometry(200,80,250,20)
@@ -73,7 +75,8 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         self.quit_btn = QtGui.QPushButton("Download", self)
         self.quit_btn.move(200,120)
         self.quit_btn.clicked.connect(self.download)
-        '''
+        
+        
         # Drop Downs & Styles
         print(self.style().objectName())
         self.styleChoice = QtGui.QLabel("Windows", self)
@@ -89,13 +92,13 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         comboBox.move(50, 250)
         self.styleChoice.move(50, 150)
         comboBox.activated[str].connect(self.style_choice)
+        '''
 
         self.show()
 
     def style_choice(self, text):
         self.styleChoice.setText(text)
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(text))
-    
+        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(text)) 
     '''
     def download(self):
         self.completed = 0
@@ -103,7 +106,7 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         while self.completed < 100:
             self.completed += 0.001
             self.progress.setValue(self.completed)
-'''
+    '''
     def enlarge_window(self, state):
         if state == QtCore.Qt.Checked:
             self.setGeometry(50,50,1000,600)
@@ -120,7 +123,6 @@ class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             sys.exit()
         else:
             pass
-
 
     def update(self):
         if not self.ear.data is None and not self.ear.fft is None:
