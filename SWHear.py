@@ -9,6 +9,7 @@ import pyaudio
 import time
 import numpy as np
 import threading
+import sys
 
 def getFFT(data,rate):
     """Given some data and rate, returns FFTfreq and FFT (half)."""
@@ -96,7 +97,8 @@ class SWHear():
             print("guessing a valid microphone device/rate...")
             self.device=self.valid_input_devices()[0] #pick the first one
             self.rate=self.valid_low_rate(self.device)
-        self.datax=np.arange(self.chunk)/float(self.rate)
+        self.datax=np.arange(self.chunk)/float(self.rate) #array of x axis values, number = chunk size
+        self.databuffx=np.arange(20 * self.chunk)/float(self.rate)
         msg='recording from "%s" '%self.info["name"]
         msg+='(device %d) '%self.device
         msg+='at %d Hz'%self.rate
@@ -115,21 +117,32 @@ class SWHear():
 
     def stream_readchunk(self):
         """reads some audio and re-launches itself"""
-        try:
-            self.data = np.fromstring(self.stream.read(self.chunk),dtype=np.int16)
-            self.fftx, self.fft = getFFT(self.data,self.rate)
+        while (self.keepRecording == True):
+            try:
+                self.data = np.fromstring(self.stream.read(self.chunk, exception_on_overflow = False),dtype=np.int16)
+                self.fftx, self.fft = getFFT(self.data,self.rate)
+                #Add data to data buff, remove previous data chunk
+                self.databuff = np.concatenate([self.databuff, self.data])
+                if len(self.databuff) > (20 * self.chunk):
+                    self.databuff = self.databuff[self.chunk:]
+                    self.plotbuff=True
+                #print(len(self.databuff))
 
-        except Exception as E:
-            print(" -- exception! terminating...")
-            print(E,"\n"*5)
-            self.keepRecording=False
-        if self.keepRecording:
-            self.stream_thread_new()
-        else:
-            self.stream.close()
-            self.p.terminate()
-            print(" -- stream STOPPED")
-        self.chunksRead+=1
+            except Exception as E:
+                print(" -- exception! terminating...")
+                print(E,"\n"*5)
+                self.keepRecording=False
+            self.chunksRead+=1
+
+            #if self.keepRecording:
+                #self.stream_thread_new()
+                #return self.stream_readchunk()
+                #try a while loop
+            #else:
+        self.stream.close()
+        self.p.terminate()
+        print(" -- stream STOPPED")
+        sys.exit() #used with go.py main, maybe comment out when running main below
 
     def stream_thread_new(self):
         self.t=threading.Thread(target=self.stream_readchunk)
@@ -141,6 +154,8 @@ class SWHear():
         print(" -- starting stream")
         self.keepRecording=True # set this to False later to terminate stream
         self.data=None # will fill up with threaded recording data
+        self.databuff=[]
+        self.plotbuff=False
         self.fft=None
         self.dataFiltered=None #same
         self.stream=self.p.open(format=pyaudio.paInt16,channels=1,
