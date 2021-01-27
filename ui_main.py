@@ -66,6 +66,14 @@ class Ui_MainWindow(object):
         #self.grSaw.setObjectName(_fromUtf8("grSaw"))
         #self.verticalLayout.addWidget(self.grSaw)
         
+        #Add a window for displaying input buffer
+        self.label_3 = QtGui.QLabel(self.frame)
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.verticalLayout.addWidget(self.label_3)
+        self.inputbuffer = PlotWidget(self.frame)
+        self.inputbuffer.setObjectName(_fromUtf8("Input Buffer"))
+        self.verticalLayout.addWidget(self.inputbuffer)
+
         self.horizontalLayout.addWidget(self.frame)
         MainWindow.setCentralWidget(self.centralwidget)
 

@@ -19,6 +19,7 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         self.grFFT.plotItem.showGrid(True, True, 0.7)
         self.grPCM.plotItem.showGrid(True, True, 0.7)
         #self.grSaw.plotItem.showGrid(True, True, 0.7)
+        self.inputbuffer.plotItem.showGrid(True, True, 0.7)
         self.maxFFT=0
         self.maxPCM=0
         #self.maxSaw=0
@@ -33,6 +34,7 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             if pcmMax>self.maxPCM:
                 self.maxPCM=pcmMax
                 self.grPCM.plotItem.setRange(yRange=[-pcmMax,pcmMax])
+                self.inputbuffer.plotItem.setRange(yRange=[-pcmMax,pcmMax])
             if np.max(self.ear.fft)>self.maxFFT:
                 self.maxFFT=np.max(np.abs(self.ear.fft))
                 #self.grFFT.plotItem.setRange(yRange=[0,self.maxFFT])
@@ -40,12 +42,13 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             self.pbLevel.setValue(1000*pcmMax/self.maxPCM)
             pen=pyqtgraph.mkPen(color='b')
             self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
+            if self.ear.plotbuff:
+                pen=pyqtgraph.mkPen(color='g')
+                self.inputbuffer.plot(self.ear.databuffx,self.ear.databuff,pen=pen,clear=True)
             pen=pyqtgraph.mkPen(color='r')
             self.grFFT.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
-            pen=pyqtgraph.mkPen(color='g')
-            #self.grSaw.plot(self.sawtooth.get_frame(0))
-            
-            
+            #pen=pyqtgraph.mkPen(color='g')
+            #self.grSaw.plot(self.sawtooth.get_frame(0))  
         QtCore.QTimer.singleShot(1, self.update) # QUICKLY repeat
 
 if __name__=="__main__":
@@ -54,4 +57,6 @@ if __name__=="__main__":
     form.show()
     form.update() #start with something
     app.exec_()
+    form.ear.keepRecording=False
     print("DONE")
+    sys.exit()
