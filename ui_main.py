@@ -25,23 +25,42 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(500, 692)
+        MainWindow.resize(692, 500)
         
         # Create centralwidget (graph)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        
+
+
         # Create paramwidget (params)
         self.paramwidget = QtGui.QWidget(MainWindow)
         self.paramwidget.setObjectName(_fromUtf8("paramwidget"))
 
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
+        #self.horizontalLayout.setContentsMargins(0,0,0,0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         
+        # Frame for graph
         self.frame = QtGui.QFrame(self.centralwidget)
-        self.frame.setFrameShape(QtGui.QFrame.NoFrame)
+        self.frame.setFrameShape(QtGui.QFrame.Box)
         self.frame.setFrameShadow(QtGui.QFrame.Plain)
         self.frame.setObjectName(_fromUtf8("frame"))
+        self.frame.setMinimumWidth(300)
+        self.frame.setMaximumWidth(700)
+
+        self.frame.setMinimumHeight(300)
+        self.frame.setMaximumHeight(500)
+        #self.frame.setGeometry(0,0,700,500)
+
+        
+        # Frame for params
+        self.frame2 = QtGui.QFrame(self.paramwidget)
+        self.frame2.setFrameShape(QtGui.QFrame.Box)
+        self.frame2.setFrameShadow(QtGui.QFrame.Plain)
+        self.frame2.setObjectName(_fromUtf8("frame2"))
+        self.frame2.setMaximumWidth(700)
+        self.frame2.setMaximumHeight(500)
+        self.frame2.setGeometry(100,0,0,500)
 
         self.verticalLayout = QtGui.QVBoxLayout(self.frame)
         self.verticalLayout.setContentsMargins(0,0,0,0)
@@ -58,8 +77,10 @@ class Ui_MainWindow(object):
         #self.horizontalLayout.addWidget(self.pbLevel)
         '''
 
+        #self.addParamBox("PCM", "Raw Parameters")
         # Add Raw Data Graph
         self.addGraph("PCM", "Raw Data (PCM)")
+        
 
         # Add FFT graph
         #self.addGraph("FFT", "Frequency Data (FFT)")
@@ -67,10 +88,14 @@ class Ui_MainWindow(object):
         #Add a window for displaying input buffer
         #self.addGraph("inputbuffer", "Input Buffer")
         
-        self.addParamBox()
+        #self.addParamBox()
 
+        self.horizontalLayout.addWidget(self.frame2)
         self.horizontalLayout.addWidget(self.frame)
+        
         MainWindow.setCentralWidget(self.centralwidget)
+        
+        
         
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -108,7 +133,34 @@ class Ui_MainWindow(object):
         tmp.setText(_translate("MainWindow", title, None))
 
     # Creates a parameter box
-    def addParamBox(self, state=1):
+    def addParamBox(self, name, title, state=1):
+        label = name + "_label"
+        print("label: ", label)
+        print("name: ", name)
+        prName = "pr" + name
+
+        #self.label = QtGui.QLabel(self.frame)
+        setattr(self, label, QtGui.QLabel(self.frame2))
+
+        #self.label.setObjectName(_fromUtf8("label"))  -> self.label becomes tmp
+        tmp = getattr(self, label)
+        tmp.setObjectName(_fromUtf8("label"))
+
+        self.horizontalLayout.addWidget(tmp)
+        
+        #self.grName = PlotWidget(self.frame)
+        setattr(self, prName, QtGui.QLabel(self.frame2))
+
+        #self.grName.setObjectName(_fromUtf8(grName))  -> self.grName becomes tmp2
+        tmp2 = getattr(self, prName)
+        tmp2.setObjectName(_fromUtf8(prName))
+        
+        if state:
+            self.horizontalLayout.addWidget(tmp2)
+        else:
+            pass
+
+        '''
         container = QtGui.QWidget()
         container.setLayout(QtGui.QVBoxLayout())
 
@@ -116,6 +168,7 @@ class Ui_MainWindow(object):
         ex = QtGui.QPushButton("example")
         container.layout().addWidget(ex)
         self.layout().addWidget(container)
+        '''
 
     # Creates a modes tab
     def addModesTab(self, state=1):
