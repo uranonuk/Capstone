@@ -25,64 +25,196 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(993, 692)
+        MainWindow.resize(692, 500)
+        
+        # Create centralwidget (graph)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+
+
+        # Create paramwidget (params)
+        self.paramwidget = QtGui.QWidget()
+        self.paramwidget.setObjectName(_fromUtf8("paramwidget"))
+
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
+        #self.horizontalLayout.setContentsMargins(0,0,0,0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        
+        # Frame for graph
+        self.frame = QtGui.QFrame(self.centralwidget)
+        self.frame.setFrameShape(QtGui.QFrame.Box)
+        self.frame.setFrameShadow(QtGui.QFrame.Plain)
+        self.frame.setObjectName(_fromUtf8("frame"))
+        self.frame.setMinimumWidth(300)
+        self.frame.setMaximumWidth(700)
+
+        self.frame.setMinimumHeight(300)
+        self.frame.setMaximumHeight(500)
+        #self.frame.setGeometry(0,0,700,500)
+
+        
+        # Frame for params
+        self.frame2 = QtGui.QFrame(self.paramwidget)
+        self.frame2.setFrameShape(QtGui.QFrame.Box)
+        self.frame2.setFrameShadow(QtGui.QFrame.Plain)
+        self.frame2.setObjectName(_fromUtf8("frame2"))
+        self.frame2.setMaximumWidth(700)
+        self.frame2.setMaximumHeight(500)
+        self.frame2.setGeometry(0,0,0,0)
+
+        
+        self.verticalLayout = QtGui.QVBoxLayout(self.frame)
+        self.verticalLayout.setContentsMargins(0,0,0,0)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+
+        '''
+        # Progress Bar
         self.pbLevel = QtGui.QProgressBar(self.centralwidget)
         self.pbLevel.setMaximum(1000)
         self.pbLevel.setProperty("value", 123)
         self.pbLevel.setTextVisible(False)
         self.pbLevel.setOrientation(QtCore.Qt.Vertical)
         self.pbLevel.setObjectName(_fromUtf8("pbLevel"))
-        self.horizontalLayout.addWidget(self.pbLevel)
-        self.frame = QtGui.QFrame(self.centralwidget)
-        self.frame.setFrameShape(QtGui.QFrame.NoFrame)
-        self.frame.setFrameShadow(QtGui.QFrame.Plain)
-        self.frame.setObjectName(_fromUtf8("frame"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.frame)
-        self.verticalLayout.setContentsMargins(0,0,0,0)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        #self.horizontalLayout.addWidget(self.pbLevel)
+        '''
 
-        self.label = QtGui.QLabel(self.frame)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.verticalLayout.addWidget(self.label)
-        self.grFFT = PlotWidget(self.frame)
-        self.grFFT.setObjectName(_fromUtf8("grFFT"))
-        self.verticalLayout.addWidget(self.grFFT)
-
-        self.label_2 = QtGui.QLabel(self.frame)
-        self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.verticalLayout.addWidget(self.label_2)
-        self.grPCM = PlotWidget(self.frame)
-        self.grPCM.setObjectName(_fromUtf8("grPCM"))
-        self.verticalLayout.addWidget(self.grPCM)
-
-        #self.label_3 = QtGui.QLabel(self.frame)
-        #self.label_3.setObjectName(_fromUtf8("label_3"))
-        #self.verticalLayout.addWidget(self.label_3)
-        #self.grSaw = PlotWidget(self.frame)
-        #self.grSaw.setObjectName(_fromUtf8("grSaw"))
-        #self.verticalLayout.addWidget(self.grSaw)
+        #self.addParamBox("PCM", "Raw Parameters")
+        # Add Raw Data Graph
+        self.addGraph("PCM", "Raw Data (PCM)")
         
+
+        # Add FFT graph
+        #self.addGraph("FFT", "Frequency Data (FFT)")
+
         #Add a window for displaying input buffer
-        self.label_3 = QtGui.QLabel(self.frame)
-        self.label_3.setObjectName(_fromUtf8("label_3"))
-        self.verticalLayout.addWidget(self.label_3)
-        self.inputbuffer = PlotWidget(self.frame)
-        self.inputbuffer.setObjectName(_fromUtf8("Input Buffer"))
-        self.verticalLayout.addWidget(self.inputbuffer)
+        #self.addGraph("inputbuffer", "Input Buffer")
+        
 
-        self.horizontalLayout.addWidget(self.frame)
+
+        
+        self.horizontalLayout.addWidget(self.frame, 4)
+        #self.horizontalLayout.addWidget(self.paramwidget, 4)
+        
+        velems, helems = [], []
+        '''
+        # Create what will be inside Parameters
+        self.textBox =  QtGui.QLabel('Parameters')
+        self.textBox.setAlignment(QtCore.Qt.AlignLeft)
+        velems.append(self.textBox)
+        '''
+        # Digital Signal Processing options
+        self.DSP_triggering = QtGui.QPushButton("Triggering")
+        self.DSP_averaging = QtGui.QPushButton("Averaging")
+        velems.append(self.DSP_triggering)
+        velems.append(self.DSP_averaging)
+
+        if velems == []:
+            velems = None
+        if helems == []:
+            helems = None
+        
+        # Create the params box
+        self.createGroupBox("groupBox", "Parameters", velems, helems)
+
+        self.horizontalLayout.addWidget(self.groupBox)
+
         MainWindow.setCentralWidget(self.centralwidget)
+        
+        '''
+        self.checkSine =  QCheckBox('Sine')
+        self.checkSine.stateChanged.connect(self.clickedSine)
+        self.verticalLayout.addWidget(self.checkSine)
 
-        self.retranslateUi(MainWindow)
+        self.checkPulse =  QCheckBox('Pulse')
+        self.checkPulse.stateChanged.connect(self.clickedPulse)
+        self.verticalLayout.addWidget(self.checkPulse)
+
+        self.checkSawtooth =  QCheckBox('Sawtooth')
+        self.checkSawtooth.stateChanged.connect(self.clickedSawtooth)
+        self.verticalLayout.addWidget(self.checkSawtooth)
+
+        self.checkTriangle =  QCheckBox('Triangle')
+        self.checkTriangle.stateChanged.connect(self.clickedTriangle)
+        self.verticalLayout.addWidget(self.checkTriangle)
+
+        self.checkWhiteNoise =  QCheckBox('White Noise')
+        self.checkWhiteNoise.stateChanged.connect(self.clickedWhiteNoise)
+        self.verticalLayout.addWidget(self.checkWhiteNoise)
+
+        self.freqButton = QtWidgets.QPushButton("Change Frequency") 
+        self.freqButton.clicked.connect(self.getFreqInt)
+        self.verticalLayout.addWidget(self.freqButton)
+
+        self.srateButton = QtWidgets.QPushButton("Change Sample Rate") 
+        self.srateButton.clicked.connect(self.getSRate)
+        self.verticalLayout.addWidget(self.srateButton)
+        '''
+        
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        
+    def createGroupBox(self, field, boxTitle, velems=None, helems=None):
+        setattr(self, field, QtGui.QGroupBox(boxTitle))
+        box = getattr(self, field)
 
+        vbox = QtGui.QVBoxLayout(box)
+        hbox = QtGui.QHBoxLayout(box)
+
+        if velems != None:
+            for velem in velems:
+                vbox.addWidget(velem)
+
+        if helems != None:
+            for helem in helems:
+                hbox.addWidget(helem)
+
+        #self.horizontalLayout(box)
+
+    # Creates a data graph
+    def addGraph(self, name, title, state=1):
+        label = name + "_label"
+        print("label: ", label)
+        print("name: ", name)
+        grName = "gr" + name
+
+        #self.label = QtGui.QLabel(self.frame)
+        setattr(self, label, QtGui.QLabel(self.frame))
+
+        #self.label.setObjectName(_fromUtf8("label"))  -> self.label becomes tmp
+        tmp = getattr(self, label)
+        tmp.setObjectName(_fromUtf8("label"))
+
+        self.verticalLayout.addWidget(tmp)
+
+        #self.grName = PlotWidget(self.frame)
+        setattr(self, grName, PlotWidget(self.frame))
+
+        #self.grName.setObjectName(_fromUtf8(grName))  -> self.grName becomes tmp2
+        tmp2 = getattr(self, grName)
+        tmp2.setObjectName(_fromUtf8(grName))
+        
+        if state:
+            self.verticalLayout.addWidget(tmp2)
+        else:
+            pass
+        
+        # RetranslateUi:
+        #self.label.setText(_translate("MainWindow", "frequency data (FFT):", None))
+        tmp.setText(_translate("MainWindow", title, None))
+
+    # Creates a parameter box
+    def addParamBox(self, attr, type, state=1):
+        pass
+
+    # Creates a modes tab
+    def addModesTab(self, state=1):
+        pass
+
+    # Unused now
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
         self.label.setText(_translate("MainWindow", "frequency data (FFT):", None))
-        self.label_2.setText(_translate("MainWindow", "raw data (PCM):", None))
+        self.label_2.setText(_translate("MainWindow", "Raw Data (PCM):", None))
+        self.label_3.setText(_translate("MainWindow", "Input Buffer:", None))
 
 from pyqtgraph import PlotWidget
