@@ -95,15 +95,29 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.frame, 4)
         #self.horizontalLayout.addWidget(self.paramwidget, 4)
         
+        velems, helems = [], []
+        '''
+        # Create what will be inside Parameters
         self.textBox =  QtGui.QLabel('Parameters')
         self.textBox.setAlignment(QtCore.Qt.AlignLeft)
-        #self.horizontalLayout.addWidget(self.textBox)
-
-        velems = []
         velems.append(self.textBox)
+        '''
+        # Digital Signal Processing options
+        self.DSP_triggering = QtGui.QPushButton("Triggering")
+        self.DSP_averaging = QtGui.QPushButton("Averaging")
+        velems.append(self.DSP_triggering)
+        velems.append(self.DSP_averaging)
 
-        self.createGroupBox("groupBox", "Parameters", velems)
+        if velems == []:
+            velems = None
+        if helems == []:
+            helems = None
+        
+        # Create the params box
+        self.createGroupBox("groupBox", "Parameters", velems, helems)
+
         self.horizontalLayout.addWidget(self.groupBox)
+
         MainWindow.setCentralWidget(self.centralwidget)
         
         '''
@@ -143,8 +157,8 @@ class Ui_MainWindow(object):
         setattr(self, field, QtGui.QGroupBox(boxTitle))
         box = getattr(self, field)
 
-        vbox = QtGui.QVBoxLayout()
-        hbox = QtGui.QHBoxLayout()
+        vbox = QtGui.QVBoxLayout(box)
+        hbox = QtGui.QHBoxLayout(box)
 
         if velems != None:
             for velem in velems:
