@@ -52,31 +52,10 @@ class Ui_MainWindow(object):
         self.frame.setMaximumHeight(500)
         #self.frame.setGeometry(0,0,700,500)
 
-        
-        # Frame for params
-        self.frame2 = QtGui.QFrame(self.paramwidget)
-        self.frame2.setFrameShape(QtGui.QFrame.Box)
-        self.frame2.setFrameShadow(QtGui.QFrame.Plain)
-        self.frame2.setObjectName(_fromUtf8("frame2"))
-        self.frame2.setMaximumWidth(700)
-        self.frame2.setMaximumHeight(500)
-        self.frame2.setGeometry(0,0,0,0)
-
-        
         self.verticalLayout = QtGui.QVBoxLayout(self.frame)
         self.verticalLayout.setContentsMargins(0,0,0,0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
 
-        '''
-        # Progress Bar
-        self.pbLevel = QtGui.QProgressBar(self.centralwidget)
-        self.pbLevel.setMaximum(1000)
-        self.pbLevel.setProperty("value", 123)
-        self.pbLevel.setTextVisible(False)
-        self.pbLevel.setOrientation(QtCore.Qt.Vertical)
-        self.pbLevel.setObjectName(_fromUtf8("pbLevel"))
-        #self.horizontalLayout.addWidget(self.pbLevel)
-        '''
 
         #self.addParamBox("PCM", "Raw Parameters")
         # Add Raw Data Graph
@@ -95,28 +74,29 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.frame, 4)
         #self.horizontalLayout.addWidget(self.paramwidget, 4)
         
-        velems, helems = [], []
-        '''
-        # Create what will be inside Parameters
-        self.textBox =  QtGui.QLabel('Parameters')
-        self.textBox.setAlignment(QtCore.Qt.AlignLeft)
-        velems.append(self.textBox)
-        '''
-        # Digital Signal Processing options
+        elems = []
+        tmp = []
+        
+        # Digital Signal Processing options (1st Row of params)
         self.DSP_triggering = QtGui.QPushButton("Triggering")
         self.DSP_averaging = QtGui.QPushButton("Averaging")
-        velems.append(self.DSP_triggering)
-        velems.append(self.DSP_averaging)
+        self.DSP_FFT = QtGui.QPushButton("FFT")
+        tmp.append(self.DSP_triggering)
+        tmp.append(self.DSP_averaging)
+        tmp.append(self.DSP_FFT)
+        elems.append(tmp)
 
+        '''
         if velems == []:
             velems = None
         if helems == []:
             helems = None
-        
-        # Create the params box
-        self.createGroupBox("groupBox", "Parameters", velems, helems)
+        '''
 
-        self.horizontalLayout.addWidget(self.groupBox)
+        # Create the params box
+        
+
+        self.horizontalLayout.addWidget(self.createGroupBox( "Parameters", elems))
 
         MainWindow.setCentralWidget(self.centralwidget)
         
@@ -153,7 +133,24 @@ class Ui_MainWindow(object):
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         
-    def createGroupBox(self, field, boxTitle, velems=None, helems=None):
+    def createGroupBox(self, boxTitle, elems=None):
+        group_box_settings = QtGui.QGroupBox(self)
+        group_box_settings.setTitle(boxTitle)
+        
+        grid = QtGui.QGridLayout()
+
+        row, col = 0, 0
+        for row_array in elems:
+            for col_elem in row_array:
+                grid.addWidget(col_elem, row, col)
+                col += 1
+            
+            row += 1
+
+        group_box_settings.setLayout(grid)
+
+        return group_box_settings
+        '''
         setattr(self, field, QtGui.QGroupBox(boxTitle))
         box = getattr(self, field)
 
@@ -169,7 +166,7 @@ class Ui_MainWindow(object):
                 hbox.addWidget(helem)
 
         #self.horizontalLayout(box)
-
+        '''
     # Creates a data graph
     def addGraph(self, name, title, state=1):
         label = name + "_label"
