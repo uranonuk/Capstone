@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
 
 
         # Create paramwidget (params)
-        self.paramwidget = QtGui.QWidget(MainWindow)
+        self.paramwidget = QtGui.QWidget()
         self.paramwidget.setObjectName(_fromUtf8("paramwidget"))
 
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
@@ -60,8 +60,9 @@ class Ui_MainWindow(object):
         self.frame2.setObjectName(_fromUtf8("frame2"))
         self.frame2.setMaximumWidth(700)
         self.frame2.setMaximumHeight(500)
-        self.frame2.setGeometry(100,0,0,500)
+        self.frame2.setGeometry(0,0,0,0)
 
+        
         self.verticalLayout = QtGui.QVBoxLayout(self.frame)
         self.verticalLayout.setContentsMargins(0,0,0,0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
@@ -88,18 +89,73 @@ class Ui_MainWindow(object):
         #Add a window for displaying input buffer
         #self.addGraph("inputbuffer", "Input Buffer")
         
-        #self.addParamBox()
 
-        self.horizontalLayout.addWidget(self.frame2)
-        self.horizontalLayout.addWidget(self.frame)
+
         
+        self.horizontalLayout.addWidget(self.frame, 4)
+        #self.horizontalLayout.addWidget(self.paramwidget, 4)
+        
+        self.textBox =  QtGui.QLabel('Parameters')
+        self.textBox.setAlignment(QtCore.Qt.AlignLeft)
+        #self.horizontalLayout.addWidget(self.textBox)
+
+        velems = []
+        velems.append(self.textBox)
+
+        self.createGroupBox("groupBox", "Parameters", velems)
+        self.horizontalLayout.addWidget(self.groupBox)
         MainWindow.setCentralWidget(self.centralwidget)
         
-        
+        '''
+        self.checkSine =  QCheckBox('Sine')
+        self.checkSine.stateChanged.connect(self.clickedSine)
+        self.verticalLayout.addWidget(self.checkSine)
+
+        self.checkPulse =  QCheckBox('Pulse')
+        self.checkPulse.stateChanged.connect(self.clickedPulse)
+        self.verticalLayout.addWidget(self.checkPulse)
+
+        self.checkSawtooth =  QCheckBox('Sawtooth')
+        self.checkSawtooth.stateChanged.connect(self.clickedSawtooth)
+        self.verticalLayout.addWidget(self.checkSawtooth)
+
+        self.checkTriangle =  QCheckBox('Triangle')
+        self.checkTriangle.stateChanged.connect(self.clickedTriangle)
+        self.verticalLayout.addWidget(self.checkTriangle)
+
+        self.checkWhiteNoise =  QCheckBox('White Noise')
+        self.checkWhiteNoise.stateChanged.connect(self.clickedWhiteNoise)
+        self.verticalLayout.addWidget(self.checkWhiteNoise)
+
+        self.freqButton = QtWidgets.QPushButton("Change Frequency") 
+        self.freqButton.clicked.connect(self.getFreqInt)
+        self.verticalLayout.addWidget(self.freqButton)
+
+        self.srateButton = QtWidgets.QPushButton("Change Sample Rate") 
+        self.srateButton.clicked.connect(self.getSRate)
+        self.verticalLayout.addWidget(self.srateButton)
+        '''
         
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         
+    def createGroupBox(self, field, boxTitle, velems=None, helems=None):
+        setattr(self, field, QtGui.QGroupBox(boxTitle))
+        box = getattr(self, field)
+
+        vbox = QtGui.QVBoxLayout()
+        hbox = QtGui.QHBoxLayout()
+
+        if velems != None:
+            for velem in velems:
+                vbox.addWidget(velem)
+
+        if helems != None:
+            for helem in helems:
+                hbox.addWidget(helem)
+
+        #self.horizontalLayout(box)
+
     # Creates a data graph
     def addGraph(self, name, title, state=1):
         label = name + "_label"
@@ -133,46 +189,13 @@ class Ui_MainWindow(object):
         tmp.setText(_translate("MainWindow", title, None))
 
     # Creates a parameter box
-    def addParamBox(self, name, title, state=1):
-        label = name + "_label"
-        print("label: ", label)
-        print("name: ", name)
-        prName = "pr" + name
-
-        #self.label = QtGui.QLabel(self.frame)
-        setattr(self, label, QtGui.QLabel(self.frame2))
-
-        #self.label.setObjectName(_fromUtf8("label"))  -> self.label becomes tmp
-        tmp = getattr(self, label)
-        tmp.setObjectName(_fromUtf8("label"))
-
-        self.horizontalLayout.addWidget(tmp)
-        
-        #self.grName = PlotWidget(self.frame)
-        setattr(self, prName, QtGui.QLabel(self.frame2))
-
-        #self.grName.setObjectName(_fromUtf8(grName))  -> self.grName becomes tmp2
-        tmp2 = getattr(self, prName)
-        tmp2.setObjectName(_fromUtf8(prName))
-        
-        if state:
-            self.horizontalLayout.addWidget(tmp2)
-        else:
-            pass
-
-        '''
-        container = QtGui.QWidget()
-        container.setLayout(QtGui.QVBoxLayout())
-
-        # Buttons
-        ex = QtGui.QPushButton("example")
-        container.layout().addWidget(ex)
-        self.layout().addWidget(container)
-        '''
+    def addParamBox(self, attr, type, state=1):
+        pass
 
     # Creates a modes tab
     def addModesTab(self, state=1):
         pass
+
     # Unused now
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
