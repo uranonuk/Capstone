@@ -79,8 +79,14 @@ class Ui_MainWindow(object):
         
         # Digital Signal Processing options (1st Row of params)
         self.DSP_triggering = QtGui.QPushButton("Triggering")
+        self.DSP_triggering.setFixedSize(120,30)
+
         self.DSP_averaging = QtGui.QPushButton("Averaging")
+        self.DSP_averaging.setFixedSize(120,30)
+
         self.DSP_FFT = QtGui.QPushButton("FFT")
+        self.DSP_FFT.setFixedSize(120,30)
+
         tmp.append(self.DSP_triggering)
         tmp.append(self.DSP_averaging)
         tmp.append(self.DSP_FFT)
@@ -138,6 +144,7 @@ class Ui_MainWindow(object):
         group_box_settings.setTitle(boxTitle)
         
         grid = QtGui.QGridLayout()
+        grid.setAlignment(QtCore.Qt.AlignTop)
 
         row, col = 0, 0
         for row_array in elems:
