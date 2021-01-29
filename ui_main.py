@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui
+from PyQt5.QtWidgets import QWidget, QMainWindow
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -22,8 +23,40 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+class AnotherWindow(QMainWindow):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self, parent=None):
+        super().__init__()
+        self.resize(692, 500)
+        self.centralwidget = QtGui.QWidget()
+        self.setCentralWidget(self.centralwidget)
+        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.frame = QtGui.QFrame(self.centralwidget)
+        self.frame.setFrameShape(QtGui.QFrame.NoFrame)
+        self.frame.setFrameShadow(QtGui.QFrame.Plain)
+        self.frame.setObjectName(_fromUtf8("frame"))
+        self.verticalLayout = QtGui.QVBoxLayout(self.frame)
+        self.verticalLayout.setContentsMargins(0,0,0,0)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.label = QtGui.QLabel(self.frame)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.verticalLayout.addWidget(self.label)
+        self.grFFT = PlotWidget(self.frame)
+        self.grFFT.setObjectName(_fromUtf8("grFFT"))
+        self.verticalLayout.addWidget(self.grFFT)
+        self.horizontalLayout.addWidget(self.frame)
+        self.grFFT.plotItem.showGrid(True, True, 0.7)
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        self.display="pcm"
+        self.w=AnotherWindow()
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.resize(692, 500)
         
@@ -79,12 +112,15 @@ class Ui_MainWindow(object):
         
         # Digital Signal Processing options (1st Row of params)
         self.DSP_triggering = QtGui.QPushButton("Triggering")
+        self.DSP_triggering.clicked.connect(self.show_new_window)
         self.DSP_triggering.setFixedSize(120,30)
 
         self.DSP_averaging = QtGui.QPushButton("Averaging")
+        self.DSP_averaging.clicked.connect(self.avgbutton)
         self.DSP_averaging.setFixedSize(120,30)
 
         self.DSP_FFT = QtGui.QPushButton("FFT")
+        self.DSP_FFT.clicked.connect(self.fftbutton)
         self.DSP_FFT.setFixedSize(120,30)
 
         tmp.append(self.DSP_triggering)
@@ -139,6 +175,22 @@ class Ui_MainWindow(object):
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         
+    def show_new_window(self, checked):
+        #self.w = AnotherWindow()
+        self.w.show()
+
+    def fftbutton(self):
+        if (self.display=="fft"):
+            self.display="pcm"
+        else:
+            self.display = "fft"
+
+    def avgbutton(self):
+        if (self.display=="buf"):
+            self.display="pcm"
+        else:
+            self.display = "buf"
+
     def createGroupBox(self, boxTitle, elems=None):
         group_box_settings = QtGui.QGroupBox(self)
         group_box_settings.setTitle(boxTitle)

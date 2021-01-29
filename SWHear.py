@@ -125,7 +125,7 @@ class SWHear():
                 self.databuff = np.concatenate([self.databuff, self.data])
                 if len(self.databuff) > (20 * self.chunk):
                     self.databuff = self.databuff[self.chunk:]
-                    self.plotbuff=True
+                    #self.plotbuff=True
                 #print(len(self.databuff))
 
             except Exception as E:
@@ -154,8 +154,8 @@ class SWHear():
         print(" -- starting stream")
         self.keepRecording=True # set this to False later to terminate stream
         self.data=None # will fill up with threaded recording data
-        self.databuff=[]
-        self.plotbuff=False
+        self.databuff=np.arange(20 * self.chunk)
+        #self.plotbuff=False
         self.fft=None
         self.dataFiltered=None #same
         self.stream=self.p.open(format=pyaudio.paInt16,channels=1,

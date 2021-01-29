@@ -38,19 +38,40 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             pcmMax=np.max(np.abs(self.ear.data))
             if pcmMax>self.maxPCM:
                 self.maxPCM=pcmMax
-                self.grPCM.plotItem.setRange(yRange=[-pcmMax,pcmMax])
+                #self.grPCM.plotItem.setRange(yRange=[-pcmMax,pcmMax])
                 #self.inputbuffer.plotItem.setRange(yRange=[-pcmMax,pcmMax])
-            if np.max(self.ear.fft)>self.maxFFT:
-                self.maxFFT=np.max(np.abs(self.ear.fft))
+            #if np.max(self.ear.fft)>self.maxFFT:
+                #self.maxFFT=np.max(np.abs(self.ear.fft))
                 #self.grFFT.plotItem.setRange(yRange=[0,self.maxFFT])
                 #self.grFFT.plotItem.setRange(yRange=[0,1])
             #self.pbLevel.setValue(1000*pcmMax/self.maxPCM)
-            pen=pyqtgraph.mkPen(color='b')
-            self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
-            if self.ear.plotbuff:
+            #pen=pyqtgraph.mkPen(color='b')
+            if self.w.isVisible():
+                pen=pyqtgraph.mkPen(color='b')	
+                self.w.grFFT.plotItem.setRange(yRange=[-self.maxPCM,self.maxPCM])
+                self.w.grFFT.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
+            else:
+                pass
+            
+            if self.display=="pcm":
+                pen=pyqtgraph.mkPen(color='b')
+                self.grPCM.plotItem.setRange(yRange=[-self.maxPCM,self.maxPCM])
+                self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
+            elif self.display=="buf":
+                self.grPCM.plotItem.setRange(yRange=[-self.maxPCM,self.maxPCM])
                 pen=pyqtgraph.mkPen(color='g')
+                self.grPCM.plot(self.ear.databuffx,self.ear.databuff,pen=pen,clear=True)
+            elif self.display=="fft":
+                pen=pyqtgraph.mkPen(color='r')
+                if np.max(self.ear.fft)>self.maxFFT:
+                    self.maxFFT=np.max(np.abs(self.ear.fft))
+                #self.maxPCM=1
+                self.grPCM.plotItem.setRange(yRange=[0,1])
+                self.grPCM.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
+            #if self.ear.plotbuff:
+                #pen=pyqtgraph.mkPen(color='g')
                 #self.inputbuffer.plot(self.ear.databuffx,self.ear.databuff,pen=pen,clear=True)
-            pen=pyqtgraph.mkPen(color='r')
+            #pen=pyqtgraph.mkPen(color='r')
             #self.grFFT.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
             #pen=pyqtgraph.mkPen(color='g')
             #self.grSaw.plot(self.sawtooth.get_frame(0))  
