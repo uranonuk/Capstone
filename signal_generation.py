@@ -1,7 +1,7 @@
 from pydub import generators, utils, AudioSegment
 import numpy as np
 import math
-from random import rand
+import random
 
 #wave types include sine, pulse, square, sawtooth, triagle
 def generate_wave(wave_type, freq=10, bit_depth=16, duration=1000, volume=0):
