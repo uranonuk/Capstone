@@ -220,9 +220,24 @@ class Ui_MainWindow(object):
         self.spectrogram.clicked.connect(self.spectrogrambutton)
         self.spectrogram.setFixedHeight(30)
 
+        self.averaging = QtGui.QPushButton("Signal Averaging")
+        self.averaging.clicked.connect(self.avgbutton)
+        self.averaging.setFixedHeight(30)
+
+        self.rangedet = QtGui.QPushButton("Range Detection")
+        self.rangedet.clicked.connect(self.rangebutton)
+        self.rangedet.setFixedHeight(30)
+
+        self.buffertofile = QtGui.QPushButton("Output buffer to file")
+        self.buffertofile.clicked.connect(self.bufferfilebutton)
+        self.buffertofile.setFixedHeight(30)
+
         tmp.append(self.function_generator)
         tmp.append(self.input_inputbuffer)
         tmp.append(self.spectrogram)
+        tmp.append(self.averaging)
+        tmp.append(self.rangedet)
+        tmp.append(self.buffertofile)
         elems.append(tmp)
 
 
@@ -235,6 +250,15 @@ class Ui_MainWindow(object):
     def show_new_window(self, checked):
         #self.w = AnotherWindow()
         self.w.show()
+
+    def avgbutton(self):
+        pass
+
+    def rangebutton(self):
+        pass
+
+    def bufferfilebutton(self):
+        pass
 
     def spectrogrambutton(self):
         if (self.display2=="fft"):
@@ -267,7 +291,7 @@ class Ui_MainWindow(object):
                 #col += 1
                 row += 1
             
-            row += 1
+            #row += 1
 
         group_box_settings.setLayout(grid)
 
