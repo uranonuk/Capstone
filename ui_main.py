@@ -116,7 +116,7 @@ class AnotherWindow(QMainWindow):
         self.checkWhiteNoise.stateChanged.connect(app.clickedWhiteNoise)
         self.verticalLayout.addWidget(self.checkWhiteNoise)
 
-        self.freqButton = QtWidgets.QPushButton("Change Frequency") 
+        self.freqButton = QtWidgets.QPushButton("Change Ramp Time/Frequency") 
         self.freqButton.clicked.connect(app.getFreqInt)
         self.verticalLayout.addWidget(self.freqButton)
 
@@ -133,10 +133,9 @@ class AnotherWindow(QMainWindow):
     def getSRate(self, rate):
         return QInputDialog.getInt(self, "Change Generator Sample Rate", "enter a sample rate", rate)
 
-    def getFreqInt(self, freq):
-        return QInputDialog.getInt(self,"Change Generator Frequency","enter a frequency", freq)
+    def getFreqInt(self, ramp):
+        return QInputDialog.getDouble(self, "Change Generator Ramp Time/Frequency","enter a ramp time/frequency", ramp, 0, 1, 4)
    
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -204,15 +203,15 @@ class Ui_MainWindow(object):
         # Digital Signal Processing options (1st Row of params)
         self.function_generator = QtGui.QPushButton("Function Generator")
         self.function_generator.clicked.connect(self.show_new_window)
-        self.function_generator.setFixedSize(120,30)
+        self.function_generator.setFixedHeight(30)
 
-        self.input_inputbuffer = QtGui.QPushButton("Input / Input Buffer")
+        self.input_inputbuffer = QtGui.QPushButton("Plot 1: Input/Input Buffer")
         self.input_inputbuffer.clicked.connect(self.inputbutton)
-        self.input_inputbuffer.setFixedSize(120,30)
+        self.input_inputbuffer.setFixedHeight(30)
 
-        self.spectrogram = QtGui.QPushButton("Spectrogram")
+        self.spectrogram = QtGui.QPushButton("Plot 2: FFT/Spectrogram")
         self.spectrogram.clicked.connect(self.spectrogrambutton)
-        self.spectrogram.setFixedSize(120,30)
+        self.spectrogram.setFixedHeight(30)
 
         tmp.append(self.function_generator)
         tmp.append(self.input_inputbuffer)

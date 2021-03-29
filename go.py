@@ -123,12 +123,13 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
                 volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
 
     def getFreqInt(self):
-        num, ok = self.w.getFreqInt(self.freq)
+        num, ok = self.w.getFreqInt(1/float(self.freq))
         if ok:
-            self.freq = num
+            ramp = num
+            self.freq = 1/ramp
             self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
                 volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
-            
+
     def getSRate(self):
         num, ok = self.w.getSRate(self.sample_rate)
         if ok:
