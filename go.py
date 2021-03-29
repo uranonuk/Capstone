@@ -1,81 +1,159 @@
 from PyQt5 import QtGui,QtCore
 from pydub import generators, utils
+from pydub.playback import play
 from signal_generation import generate_wave
 import sys
 import ui_main
 import numpy as np
 import pyqtgraph
 import SWHear
+import threading
 
 class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
     def __init__(self, parent=None):
         pyqtgraph.setConfigOption('background', 'w') #before loading widget
-        
         super(ExampleApp, self).__init__(parent)
-        
         # Setup
-        self.setupUi(self)
-
         self.updatesPerSecond = 20
         self.rate = 44100
-        
-        #self.grFFT.plotItem.showGrid(True, True, 0.7)
-        self.grPCM.plotItem.showGrid(True, True, 0.7)
-        #self.grSaw.plotItem.showGrid(True, True, 0.7)
-        #self.inputbuffer.plotItem.showGrid(True, True, 0.7)
         self.maxFFT=0
         self.maxPCM=0
-        #self.maxSaw=0
+        self.sample_rate = 44100
+        self.maxSaw=0
+        self.freq = 1000
+        self.volume = 0
+        self.phase_shift = 0
+        self.generateSignal = False;
+        self.display="pcm"
+        self.display2 = "fft"
+        
+        self.setupUi(self)
+        self.grPCM.plotItem.showGrid(True, True, 0.7)
+        self.grFFT.plotItem.showGrid(True, True, 0.7)
+        
         self.ear = SWHear.SWHear(rate=self.rate, updatesPerSecond=self.updatesPerSecond)
         self.ear.stream_start()
-        self.sawtooth = generate_wave('sawtooth')
-        print(self.sawtooth)
+        self.w.grSaw.setYRange(-np.iinfo('int16').max, np.iinfo('int16').max)
+        self.currentGeneratorType = 'sawtooth'
+        self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)    
 
-    
 
     def update(self):
         if not self.ear.data is None and not self.ear.fft is None:
             pcmMax=np.max(np.abs(self.ear.data))
             if pcmMax>self.maxPCM:
                 self.maxPCM=pcmMax
-                #self.grPCM.plotItem.setRange(yRange=[-pcmMax,pcmMax])
-                #self.inputbuffer.plotItem.setRange(yRange=[-pcmMax,pcmMax])
-            #if np.max(self.ear.fft)>self.maxFFT:
-                #self.maxFFT=np.max(np.abs(self.ear.fft))
-                #self.grFFT.plotItem.setRange(yRange=[0,self.maxFFT])
-                #self.grFFT.plotItem.setRange(yRange=[0,1])
-            #self.pbLevel.setValue(1000*pcmMax/self.maxPCM)
-            #pen=pyqtgraph.mkPen(color='b')
+            if np.max(self.ear.fft)>self.maxFFT:
+                self.maxFFT=np.max(np.abs(self.ear.fft))
+
             if self.w.isVisible():
-                pen=pyqtgraph.mkPen(color='b')	
-                self.w.grFFT.plotItem.setRange(yRange=[-self.maxPCM,self.maxPCM])
-                self.w.grFFT.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
+                pen=pyqtgraph.mkPen(color='g')
+                self.w.grSaw.plotItem.showGrid(True, True, 0.7)
+                self.w.grSaw.plotItem.setRange(xRange=[0, 5*self.sample_rate*(1/self.freq)])
+                self.sawtooth = self.sawtooth.astype('float64')
+                self.w.grSaw.plot(self.sawtooth, pen=pen, clear=True)
+                self.sawtooth = self.sawtooth.astype('int16')
             else:
                 pass
             
+            self.pbLevel.setValue(1000*pcmMax/self.maxPCM)
+            
             if self.display=="pcm":
                 pen=pyqtgraph.mkPen(color='b')
-                self.grPCM.plotItem.setRange(yRange=[-self.maxPCM,self.maxPCM])
+                self.grPCM.setYRange(-np.iinfo('int16').max, np.iinfo('int16').max)
+                self.ear.data = self.ear.data.astype('float64')
                 self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
+                self.ear.data = self.ear.data.astype('int16')
             elif self.display=="buf":
-                self.grPCM.plotItem.setRange(yRange=[-self.maxPCM,self.maxPCM])
+                self.grPCM.setYRange(-np.iinfo('int16').max, np.iinfo('int16').max)
                 pen=pyqtgraph.mkPen(color='g')
+                self.ear.databuff = self.ear.databuff.astype('float64')
                 self.grPCM.plot(self.ear.databuffx,self.ear.databuff,pen=pen,clear=True)
-            elif self.display=="fft":
+                self.ear.databuff = self.ear.databuff.astype('int16')
+
+            if (self.display2=="fft"):
                 pen=pyqtgraph.mkPen(color='r')
-                if np.max(self.ear.fft)>self.maxFFT:
-                    self.maxFFT=np.max(np.abs(self.ear.fft))
-                #self.maxPCM=1
-                self.grPCM.plotItem.setRange(yRange=[0,1])
-                self.grPCM.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
-            #if self.ear.plotbuff:
-                #pen=pyqtgraph.mkPen(color='g')
-                #self.inputbuffer.plot(self.ear.databuffx,self.ear.databuff,pen=pen,clear=True)
-            #pen=pyqtgraph.mkPen(color='r')
-            #self.grFFT.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
+                self.grFFT.plotItem.setRange(yRange=[0,1])
+                self.grFFT.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
+            #elif self.display2=="spectro":
+            # ADD spectrogram here
+
             #pen=pyqtgraph.mkPen(color='g')
             #self.grSaw.plot(self.sawtooth.get_frame(0))  
         QtCore.QTimer.singleShot(1, self.update) # QUICKLY repeat
+
+    def clickedSine(self, state):
+        if state:
+            self.currentGeneratorType = 'sine'
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+
+    def clickedPulse(self, state):
+        if state:
+            self.currentGeneratorType = 'pulse'
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+
+    def clickedSawtooth(self, state):
+        if state:
+            self.currentGeneratorType = 'sawtooth'
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+    def clickedTriangle(self, state):
+        if state:
+            self.currentGeneratorType = 'triangle'
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+            
+    def clickedWhiteNoise(self, state):
+        if state:
+            self.currentGeneratorType = 'whitenoise'
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+    def volumeChange(self, value):
+        self.volume = value
+        self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+
+    def shiftChange(self, value):
+        value = value/100 #for slider only returns ints
+        self.phase_shift = value
+        self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+
+    def getFreqInt(self):
+        num, ok = self.w.getFreqInt(self.freq)
+        if ok:
+            self.freq = num
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+            
+    def getSRate(self):
+        num, ok = self.w.getSRate(self.sample_rate)
+        if ok:
+            self.sample_rate = num
+            self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
+                volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+
+    def play_signal(self):
+        if self.generateSignal == False:
+            self.generateSignal = not self.generateSignal
+            self.t2 = threading.Thread(target=self.play_wave)
+            self.t2.start()
+        else:
+            self.generateSignal = not self.generateSignal
+
+    def play_wave(self):
+        while (self.generateSignal == True):
+            play(self.playable)
+        sys.exit()
+
+    def closeEvent(self, event):
+        print("Closing all windows")
+        self.w.close()
+        self.generateSignal = False
+        event.accept()
 
 def run():
     app = QtGui.QApplication(sys.argv)
@@ -89,163 +167,3 @@ def run():
 
 if __name__=="__main__":
     run()
-
-'''
-from PyQt5 import QtGui,QtCore
-
-import sys
-import ui_main
-import numpy as np
-import pyqtgraph
-import SWHear
-
-class Window(QtGui.QMainWindow, ui_main.Ui_MainWindow):
-    
-    # Core initial app structure
-
-    def __init__(self, parent=None):
-        pyqtgraph.setConfigOption('background', 'w') #before loading widget
-        
-        super(Window, self).__init__(parent)
-        
-        # Setup
-        self.setupUi(self)
-        
-        # bug: Causes quit button to not work
-        
-        # Plotting initial screen
-        self.grFFT.plotItem.showGrid(True, True, 0.7)
-        self.grPCM.plotItem.showGrid(True, True, 0.7)
-        
-        self.maxFFT=0
-        self.maxPCM=0
-        self.ear = SWHear.SWHear(rate=44100,updatesPerSecond=20)
-        self.ear.stream_start()
-        
-        
-        # Main menu bar
-        extractAction = QtGui.QAction("&Force Quit", self) # Name
-        extractAction.setShortcut("Ctrl+Q") # Shortcut
-        extractAction.triggered.connect(self.close_application) # Event when pressed
-
-        self.statusBar()
-
-        mainMenu = self.menuBar()
-        
-        fileMenu = mainMenu.addMenu('&File')
-        fileMenu.addAction(extractAction)
-
-
-        self.home()
-        
-    # Home page
-    def home(self):
-        
-        
-        quit_btn = QtGui.QPushButton("Quit", self)
-        quit_btn.clicked.connect(self.close_application)
-
-        quit_btn.resize(quit_btn.minimumSizeHint())
-        quit_btn.move(0,100)
-
-        # Toolbar
-        extractAction = QtGui.QAction("abc",self)
-        extractAction.triggered.connect(self.close_application)
-
-        self.toolBar = self.addToolBar("Extraction")
-        self.toolBar.addAction(extractAction)
-
-        # CheckBox
-        checkBox = QtGui.QCheckBox('Enlarge Window', self)
-        # checkBox.toggle() # Changes the default toggle setting
-        checkBox.stateChanged.connect(self.enlarge_window)
-        
-        
-        # Progress Bar
-        self.progress = QtGui.QProgressBar(self)
-        self.progress.setGeometry(200,80,250,20)
-
-        self.quit_btn = QtGui.QPushButton("Download", self)
-        self.quit_btn.move(200,120)
-        self.quit_btn.clicked.connect(self.download)
-        
-        
-        # Drop Downs & Styles
-        print(self.style().objectName())
-        self.styleChoice = QtGui.QLabel("Windows", self)
-
-        comboBox = QtGui.QComboBox(self)
-        comboBox.addItem("motif")
-        comboBox.addItem("Windows")
-        comboBox.addItem("cde")
-        comboBox.addItem("Plastique")
-        comboBox.addItem("Cleanlooks")
-        comboBox.addItem("windowsvista")
-
-        comboBox.move(50, 250)
-        self.styleChoice.move(50, 150)
-        comboBox.activated[str].connect(self.style_choice)
-        
-
-        self.show()
-
-    def style_choice(self, text):
-        self.styleChoice.setText(text)
-        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create(text)) 
-    
-    def download(self):
-        self.completed = 0
-
-        while self.completed < 100:
-            self.completed += 0.001
-            self.progress.setValue(self.completed)
-    
-    def enlarge_window(self, state):
-        if state == QtCore.Qt.Checked:
-            self.setGeometry(50,50,1000,600)
-        else:
-            self.setGeometry(50,50,500,300)
-
-    # Closing method
-    def close_application(self):
-        # Pop up message before quitting
-        choice = QtGui.QMessageBox.question(self, 'Extract',
-        'Are you sure you want to quit?',
-        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if choice == QtGui.QMessageBox.Yes:
-            sys.exit()
-        else:
-            pass
-
-    def update(self):
-        if not self.ear.data is None and not self.ear.fft is None:
-            pcmMax=np.max(np.abs(self.ear.data))
-            if pcmMax>self.maxPCM:
-                self.maxPCM=pcmMax
-                self.grPCM.plotItem.setRange(yRange=[-pcmMax,pcmMax])
-            if np.max(self.ear.fft)>self.maxFFT:
-                self.maxFFT=np.max(np.abs(self.ear.fft))
-                #self.grFFT.plotItem.setRange(yRange=[0,self.maxFFT])
-                self.grFFT.plotItem.setRange(yRange=[0,1])
-            self.pbLevel.setValue(1000*pcmMax/self.maxPCM)
-            pen=pyqtgraph.mkPen(color='b')
-            self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
-            pen=pyqtgraph.mkPen(color='r')
-            self.grFFT.plot(self.ear.fftx,self.ear.fft/self.maxFFT,pen=pen,clear=True)
-        QtCore.QTimer.singleShot(1, self.update) # QUICKLY repeat
-
-def run():
-    app = QtGui.QApplication(sys.argv)
-    window = Window()
-    # window.show()
-    # window.update() #start with something
-    sys.exit(app.exec_())
-    print("DONE")
-
-if __name__=="__main__":
-    run()
-    
-    
-    
-    
-'''

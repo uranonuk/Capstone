@@ -119,26 +119,18 @@ class SWHear():
         """reads some audio and re-launches itself"""
         while (self.keepRecording == True):
             try:
-                self.data = np.fromstring(self.stream.read(self.chunk, exception_on_overflow = False),dtype=np.int16)
+                self.data = np.fromstring(self.stream.read(self.chunk, exception_on_overflow = False), dtype=np.int16)
                 self.fftx, self.fft = getFFT(self.data,self.rate)
                 #Add data to data buff, remove previous data chunk
                 self.databuff = np.concatenate([self.databuff, self.data])
                 if len(self.databuff) > (20 * self.chunk):
                     self.databuff = self.databuff[self.chunk:]
-                    #self.plotbuff=True
-                #print(len(self.databuff))
 
             except Exception as E:
                 print(" -- exception! terminating...")
                 print(E,"\n"*5)
                 self.keepRecording=False
-            self.chunksRead+=1
 
-            #if self.keepRecording:
-                #self.stream_thread_new()
-                #return self.stream_readchunk()
-                #try a while loop
-            #else:
         self.stream.close()
         self.p.terminate()
         print(" -- stream STOPPED")
@@ -165,10 +157,12 @@ class SWHear():
 if __name__=="__main__":
     ear = SWHear(updatesPerSecond=10) # optinoally set sample rate here
     ear.stream_start() #goes forever
+    '''
     lastRead = ear.chunksRead
     while True:
         while lastRead==ear.chunksRead:
             time.sleep(.01)
         print(ear.chunksRead,len(ear.data))
         lastRead=ear.chunksRead
+    '''
     print("DONE")

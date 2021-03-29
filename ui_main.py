@@ -6,8 +6,9 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtWidgets import QWidget, QMainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QWidget, QMainWindow, QCheckBox, QInputDialog
+import math
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -23,13 +24,35 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+class TogglePushButtonWidget(QtWidgets.QPushButton):
+    """Toggles between on and off text
+    Changes color depending on state"""
+    def __init__(self, parent, on, off):
+        super().__init__(parent)
+        self.on = on
+        self.off = off
+        self.state = True
+        self.setText(self.on)
+        self.setStyleSheet("background-color: red")
+        self.pressed.connect(self.toggle_state)    
+    
+    def toggle_state(self):
+        self.state = not self.state
+        if self.state:
+            self.setText(self.on)
+            self.setStyleSheet("background-color: red")
+        else:
+            self.setText(self.off)
+            self.setStyleSheet("background-color: green")
+
 class AnotherWindow(QMainWindow):
     """
     This "window" is a QWidget. If it has no parent, it
     will appear as a free-floating window as we want.
     """
-    def __init__(self, parent=None):
+    def __init__(self, app):
         super().__init__()
+        self.setObjectName(_fromUtf8("FG"))
         self.resize(692, 500)
         self.centralwidget = QtGui.QWidget()
         self.setCentralWidget(self.centralwidget)
@@ -43,46 +66,116 @@ class AnotherWindow(QMainWindow):
         self.verticalLayout = QtGui.QVBoxLayout(self.frame)
         self.verticalLayout.setContentsMargins(0,0,0,0)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.label = QtGui.QLabel(self.frame)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.verticalLayout.addWidget(self.label)
-        self.grFFT = PlotWidget(self.frame)
-        self.grFFT.setObjectName(_fromUtf8("grFFT"))
-        self.verticalLayout.addWidget(self.grFFT)
+        
+        self.label_3 = QtGui.QLabel(self.frame)
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.verticalLayout.addWidget(self.label_3)
+        self.grSaw = PlotWidget(self.frame)
+        self.grSaw.setObjectName(_fromUtf8("grSaw"))
+        self.verticalLayout.addWidget(self.grSaw)
+        self.grSaw.plotItem.showGrid(True, True, 0.7)
+
+
+        self.label_Amp = QtGui.QLabel(self.frame)
+        self.label_Amp.setObjectName(_fromUtf8("label_Amp"))
+        self.verticalLayout.addWidget(self.label_Amp)
+
+        self.volumeSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.volumeSlider.setMaximum(0)
+        self.volumeSlider.setMinimum(-30)
+        self.volumeSlider.valueChanged.connect(app.volumeChange)
+        self.verticalLayout.addWidget(self.volumeSlider)
+
+        self.label_Shift = QtGui.QLabel(self.frame)
+        self.label_Shift.setObjectName(_fromUtf8("label_Shift"))
+        self.verticalLayout.addWidget(self.label_Shift)
+
+        self.shiftSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        self.shiftSlider.setMaximum(2*math.pi*100)
+        self.shiftSlider.setMinimum(0)
+        self.shiftSlider.valueChanged.connect(app.shiftChange)
+        self.verticalLayout.addWidget(self.shiftSlider)
+        
+        self.checkSine =  QCheckBox('Sine')
+        self.checkSine.stateChanged.connect(app.clickedSine)
+        self.verticalLayout.addWidget(self.checkSine)
+
+        self.checkPulse =  QCheckBox('Pulse')
+        self.checkPulse.stateChanged.connect(app.clickedPulse)
+        self.verticalLayout.addWidget(self.checkPulse)
+
+        self.checkSawtooth =  QCheckBox('Sawtooth')
+        self.checkSawtooth.stateChanged.connect(app.clickedSawtooth)
+        self.verticalLayout.addWidget(self.checkSawtooth)
+
+        self.checkTriangle =  QCheckBox('Triangle')
+        self.checkTriangle.stateChanged.connect(app.clickedTriangle)
+        self.verticalLayout.addWidget(self.checkTriangle)
+
+        self.checkWhiteNoise =  QCheckBox('White Noise')
+        self.checkWhiteNoise.stateChanged.connect(app.clickedWhiteNoise)
+        self.verticalLayout.addWidget(self.checkWhiteNoise)
+
+        self.freqButton = QtWidgets.QPushButton("Change Frequency") 
+        self.freqButton.clicked.connect(app.getFreqInt)
+        self.verticalLayout.addWidget(self.freqButton)
+
+        self.srateButton = QtWidgets.QPushButton("Change Sample Rate") 
+        self.srateButton.clicked.connect(app.getSRate)
+        self.verticalLayout.addWidget(self.srateButton)
+
+        self.another = TogglePushButtonWidget(self, "Generate", "Turn off")
+        self.another.clicked.connect(app.play_signal)
+        self.verticalLayout.addWidget(self.another)
+
         self.horizontalLayout.addWidget(self.frame)
-        self.grFFT.plotItem.showGrid(True, True, 0.7)
+
+    def getSRate(self, rate):
+        return QInputDialog.getInt(self, "Change Generator Sample Rate", "enter a sample rate", rate)
+
+    def getFreqInt(self, freq):
+        return QInputDialog.getInt(self,"Change Generator Frequency","enter a frequency", freq)
+   
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        self.display="pcm"
-        self.w=AnotherWindow()
+        self.w=AnotherWindow(app=self)
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(692, 500)
+        MainWindow.resize(993, 692)
         
         # Create centralwidget (graph)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
 
-
         # Create paramwidget (params)
         self.paramwidget = QtGui.QWidget()
         self.paramwidget.setObjectName(_fromUtf8("paramwidget"))
-
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
-        #self.horizontalLayout.setContentsMargins(0,0,0,0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         
+        # level bar on the left
+        self.pbLevel = QtGui.QProgressBar(self.centralwidget)
+        self.pbLevel.setMaximum(1000)
+        self.pbLevel.setProperty("value", 123)
+        self.pbLevel.setTextVisible(False)
+        self.pbLevel.setOrientation(QtCore.Qt.Vertical)
+        self.pbLevel.setObjectName(_fromUtf8("pbLevel"))
+        self.horizontalLayout.addWidget(self.pbLevel)
+
         # Frame for graph
         self.frame = QtGui.QFrame(self.centralwidget)
         self.frame.setFrameShape(QtGui.QFrame.Box)
         self.frame.setFrameShadow(QtGui.QFrame.Plain)
         self.frame.setObjectName(_fromUtf8("frame"))
-        self.frame.setMinimumWidth(300)
+        
+        # graph dimensions restricting
+        '''
+        self.frame.setMinimumWidth(500)
         self.frame.setMaximumWidth(700)
-
         self.frame.setMinimumHeight(300)
         self.frame.setMaximumHeight(500)
+        '''
         #self.frame.setGeometry(0,0,700,500)
 
         self.verticalLayout = QtGui.QVBoxLayout(self.frame)
@@ -93,16 +186,14 @@ class Ui_MainWindow(object):
         #self.addParamBox("PCM", "Raw Parameters")
         # Add Raw Data Graph
         self.addGraph("PCM", "Raw Data (PCM)")
-        
+        #setattr(self, label, QtGui.QLabel(self.frame))
+
 
         # Add FFT graph
-        #self.addGraph("FFT", "Frequency Data (FFT)")
+        self.addGraph("FFT", "Frequency Data (FFT)")
 
         #Add a window for displaying input buffer
         #self.addGraph("inputbuffer", "Input Buffer")
-        
-
-
         
         self.horizontalLayout.addWidget(self.frame, 4)
         #self.horizontalLayout.addWidget(self.paramwidget, 4)
@@ -111,85 +202,50 @@ class Ui_MainWindow(object):
         tmp = []
         
         # Digital Signal Processing options (1st Row of params)
-        self.DSP_triggering = QtGui.QPushButton("Triggering")
-        self.DSP_triggering.clicked.connect(self.show_new_window)
-        self.DSP_triggering.setFixedSize(120,30)
+        self.function_generator = QtGui.QPushButton("Function Generator")
+        self.function_generator.clicked.connect(self.show_new_window)
+        self.function_generator.setFixedSize(120,30)
 
-        self.DSP_averaging = QtGui.QPushButton("Averaging")
-        self.DSP_averaging.clicked.connect(self.avgbutton)
-        self.DSP_averaging.setFixedSize(120,30)
+        self.input_inputbuffer = QtGui.QPushButton("Input / Input Buffer")
+        self.input_inputbuffer.clicked.connect(self.inputbutton)
+        self.input_inputbuffer.setFixedSize(120,30)
 
-        self.DSP_FFT = QtGui.QPushButton("FFT")
-        self.DSP_FFT.clicked.connect(self.fftbutton)
-        self.DSP_FFT.setFixedSize(120,30)
+        self.spectrogram = QtGui.QPushButton("Spectrogram")
+        self.spectrogram.clicked.connect(self.spectrogrambutton)
+        self.spectrogram.setFixedSize(120,30)
 
-        tmp.append(self.DSP_triggering)
-        tmp.append(self.DSP_averaging)
-        tmp.append(self.DSP_FFT)
+        tmp.append(self.function_generator)
+        tmp.append(self.input_inputbuffer)
+        tmp.append(self.spectrogram)
         elems.append(tmp)
 
-        '''
-        if velems == []:
-            velems = None
-        if helems == []:
-            helems = None
-        '''
 
         # Create the params box
-        
-
         self.horizontalLayout.addWidget(self.createGroupBox( "Parameters", elems))
 
         MainWindow.setCentralWidget(self.centralwidget)
-        
-        '''
-        self.checkSine =  QCheckBox('Sine')
-        self.checkSine.stateChanged.connect(self.clickedSine)
-        self.verticalLayout.addWidget(self.checkSine)
-
-        self.checkPulse =  QCheckBox('Pulse')
-        self.checkPulse.stateChanged.connect(self.clickedPulse)
-        self.verticalLayout.addWidget(self.checkPulse)
-
-        self.checkSawtooth =  QCheckBox('Sawtooth')
-        self.checkSawtooth.stateChanged.connect(self.clickedSawtooth)
-        self.verticalLayout.addWidget(self.checkSawtooth)
-
-        self.checkTriangle =  QCheckBox('Triangle')
-        self.checkTriangle.stateChanged.connect(self.clickedTriangle)
-        self.verticalLayout.addWidget(self.checkTriangle)
-
-        self.checkWhiteNoise =  QCheckBox('White Noise')
-        self.checkWhiteNoise.stateChanged.connect(self.clickedWhiteNoise)
-        self.verticalLayout.addWidget(self.checkWhiteNoise)
-
-        self.freqButton = QtWidgets.QPushButton("Change Frequency") 
-        self.freqButton.clicked.connect(self.getFreqInt)
-        self.verticalLayout.addWidget(self.freqButton)
-
-        self.srateButton = QtWidgets.QPushButton("Change Sample Rate") 
-        self.srateButton.clicked.connect(self.getSRate)
-        self.verticalLayout.addWidget(self.srateButton)
-        '''
-        
-
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         
     def show_new_window(self, checked):
         #self.w = AnotherWindow()
         self.w.show()
 
-    def fftbutton(self):
-        if (self.display=="fft"):
-            self.display="pcm"
+    def spectrogrambutton(self):
+        if (self.display2=="fft"):
+            self.display2="spectro"
+            self.FFT_label.setText("Spectrogram")
         else:
-            self.display = "fft"
+            self.display2 = "fft"
+            self.FFT_label.setText("FFT")
 
-    def avgbutton(self):
+
+    def inputbutton(self):
         if (self.display=="buf"):
             self.display="pcm"
+            self.PCM_label.setText("Raw Data (PCM)")
         else:
             self.display = "buf"
+            self.PCM_label.setText("Raw Data Buffered (1s)")
 
     def createGroupBox(self, boxTitle, elems=None):
         group_box_settings = QtGui.QGroupBox(self)
@@ -202,30 +258,15 @@ class Ui_MainWindow(object):
         for row_array in elems:
             for col_elem in row_array:
                 grid.addWidget(col_elem, row, col)
-                col += 1
+                #col += 1
+                row += 1
             
             row += 1
 
         group_box_settings.setLayout(grid)
 
         return group_box_settings
-        '''
-        setattr(self, field, QtGui.QGroupBox(boxTitle))
-        box = getattr(self, field)
 
-        vbox = QtGui.QVBoxLayout(box)
-        hbox = QtGui.QHBoxLayout(box)
-
-        if velems != None:
-            for velem in velems:
-                vbox.addWidget(velem)
-
-        if helems != None:
-            for helem in helems:
-                hbox.addWidget(helem)
-
-        #self.horizontalLayout(box)
-        '''
     # Creates a data graph
     def addGraph(self, name, title, state=1):
         label = name + "_label"
