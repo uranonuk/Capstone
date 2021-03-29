@@ -1,6 +1,7 @@
 from PyQt5 import QtGui,QtCore
 from pydub import generators, utils
 from signal_generation import generate_wave
+from spectogram import plot_spectogram
 import sys
 import ui_main
 import numpy as np
@@ -10,12 +11,12 @@ import SWHear
 class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
     def __init__(self, parent=None):
         pyqtgraph.setConfigOption('background', 'w') #before loading widget
-        
         super(ExampleApp, self).__init__(parent)
         
-        # Setup
+        # Setup GUI
         self.setupUi(self)
 
+        # Initialize params for hearing
         self.updatesPerSecond = 20
         self.rate = 44100
         
@@ -23,6 +24,8 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         self.grPCM.plotItem.showGrid(True, True, 0.7)
         #self.grSaw.plotItem.showGrid(True, True, 0.7)
         #self.inputbuffer.plotItem.showGrid(True, True, 0.7)
+        
+
         self.maxFFT=0
         self.maxPCM=0
         #self.maxSaw=0
@@ -30,7 +33,7 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
         self.ear.stream_start()
         self.sawtooth = generate_wave('sawtooth')
         print(self.sawtooth)
-
+        
     
 
     def update(self):
@@ -39,6 +42,11 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             if pcmMax>self.maxPCM:
                 self.maxPCM=pcmMax
                 self.grPCM.plotItem.setRange(yRange=[-pcmMax,pcmMax])
+                
+                # NEED TO TRIGGER THIS WITH A BUTTON
+                plot_spectogram(np.array(self.ear.databuff), self.rate)
+                ############
+
                 #self.inputbuffer.plotItem.setRange(yRange=[-pcmMax,pcmMax])
             if np.max(self.ear.fft)>self.maxFFT:
                 self.maxFFT=np.max(np.abs(self.ear.fft))
@@ -47,6 +55,11 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             #self.pbLevel.setValue(1000*pcmMax/self.maxPCM)
             pen=pyqtgraph.mkPen(color='b')
             self.grPCM.plot(self.ear.datax,self.ear.data,pen=pen,clear=True)
+            
+            # ALSO THIS
+            plot_spectogram(np.array(self.ear.databuff), self.rate)
+            #############
+
             if self.ear.plotbuff:
                 pen=pyqtgraph.mkPen(color='g')
                 #self.inputbuffer.plot(self.ear.databuffx,self.ear.databuff,pen=pen,clear=True)
