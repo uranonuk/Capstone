@@ -111,6 +111,12 @@ class ExampleApp(QtGui.QMainWindow, ui_main.Ui_MainWindow):
             self.currentGeneratorType = 'whitenoise'
             self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,
                 volume=self.volume, sample_rate=self.sample_rate, phase_shift=self.phase_shift)
+    
+    def setBandwidth(self):
+        num, ok = self.w.getBandwidth(self.volume)
+        if ok:
+            pass
+
     def volumeChange(self, value):
         self.volume = value
         self.playable, self.sawtooth = generate_wave(self.currentGeneratorType, freq=self.freq,

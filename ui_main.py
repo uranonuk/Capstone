@@ -116,6 +116,10 @@ class AnotherWindow(QMainWindow):
         self.checkWhiteNoise.stateChanged.connect(app.clickedWhiteNoise)
         self.verticalLayout.addWidget(self.checkWhiteNoise)
 
+        self.bandwidth = QtWidgets.QPushButton("Change Bandwidth") 
+        self.bandwidth.clicked.connect(app.setBandwidth)
+        self.verticalLayout.addWidget(self.bandwidth)
+
         self.freqButton = QtWidgets.QPushButton("Change Ramp Time/Frequency") 
         self.freqButton.clicked.connect(app.getFreqInt)
         self.verticalLayout.addWidget(self.freqButton)
@@ -129,6 +133,9 @@ class AnotherWindow(QMainWindow):
         self.verticalLayout.addWidget(self.another)
 
         self.horizontalLayout.addWidget(self.frame)
+
+    def getBandwidth(self, bw):
+        return QInputDialog.getDouble(self, "Change Bandwidth", "enter bandwidth in MHz", bw, 0, 1000, 4)
 
     def getSRate(self, rate):
         return QInputDialog.getInt(self, "Change Generator Sample Rate", "enter a sample rate", rate)
