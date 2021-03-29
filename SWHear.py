@@ -98,7 +98,7 @@ class SWHear():
             self.device=self.valid_input_devices()[0] #pick the first one
             self.rate=self.valid_low_rate(self.device)
         self.datax=np.arange(self.chunk)/float(self.rate) #array of x axis values, number = chunk size
-        self.databuffx=np.arange(20 * self.chunk)/float(self.rate)
+        self.databuffx=np.arange(60 * self.chunk)/float(self.rate)
         msg='recording from "%s" '%self.info["name"]
         msg+='(device %d) '%self.device
         msg+='at %d Hz'%self.rate
@@ -123,7 +123,7 @@ class SWHear():
                 self.fftx, self.fft = getFFT(self.data,self.rate)
                 #Add data to data buff, remove previous data chunk
                 self.databuff = np.concatenate([self.databuff, self.data])
-                if len(self.databuff) > (20 * self.chunk):
+                if len(self.databuff) > (60 * self.chunk):
                     self.databuff = self.databuff[self.chunk:]
 
             except Exception as E:
@@ -146,7 +146,7 @@ class SWHear():
         print(" -- starting stream")
         self.keepRecording=True # set this to False later to terminate stream
         self.data=None # will fill up with threaded recording data
-        self.databuff=np.arange(20 * self.chunk)
+        self.databuff=np.arange(60 * self.chunk)
         #self.plotbuff=False
         self.fft=None
         self.dataFiltered=None #same

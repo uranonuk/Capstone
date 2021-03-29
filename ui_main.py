@@ -245,7 +245,7 @@ class Ui_MainWindow(object):
             self.PCM_label.setText("Raw Data (PCM)")
         else:
             self.display = "buf"
-            self.PCM_label.setText("Raw Data Buffered (1s)")
+            self.PCM_label.setText("Raw Data Buffered (3s)")
 
     def createGroupBox(self, boxTitle, elems=None):
         group_box_settings = QtGui.QGroupBox(self)
