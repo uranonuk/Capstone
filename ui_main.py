@@ -216,7 +216,7 @@ class Ui_MainWindow(object):
         self.input_inputbuffer.clicked.connect(self.inputbutton)
         self.input_inputbuffer.setFixedHeight(30)
 
-        self.spectrogram = QtGui.QPushButton("Plot 2: FFT/Spectrogram")
+        self.spectrogram = QtGui.QPushButton("Spectrogram")
         self.spectrogram.clicked.connect(self.spectrogrambutton)
         self.spectrogram.setFixedHeight(30)
 
