@@ -9,6 +9,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QWidget, QMainWindow, QCheckBox, QInputDialog
 import math
+import pyqtgraph as pg
+import numpy as np
+import subprocess
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -82,7 +85,7 @@ class AnotherWindow(QMainWindow):
 
         self.volumeSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
         self.volumeSlider.setMaximum(0)
-        self.volumeSlider.setMinimum(-30)
+        self.volumeSlider.setMinimum(-50)
         self.volumeSlider.valueChanged.connect(app.volumeChange)
         self.verticalLayout.addWidget(self.volumeSlider)
 
@@ -128,6 +131,18 @@ class AnotherWindow(QMainWindow):
         self.srateButton.clicked.connect(app.getSRate)
         self.verticalLayout.addWidget(self.srateButton)
 
+        self.steerAngleButton = QtWidgets.QPushButton("Change Steer Angle (deg)") 
+        self.steerAngleButton.clicked.connect(app.setSteerAngle)
+        self.verticalLayout.addWidget(self.steerAngleButton)
+
+        self.averageButton = QtWidgets.QPushButton("Average Frames") 
+        self.averageButton.clicked.connect(app.setAverageFrames)
+        self.verticalLayout.addWidget(self.averageButton)
+
+        self.scaleButton = QtWidgets.QPushButton("Scale to distance") 
+        self.scaleButton.clicked.connect(app.setDistance)
+        self.verticalLayout.addWidget(self.scaleButton)
+
         self.another = TogglePushButtonWidget(self, "Generate", "Turn off")
         self.another.clicked.connect(app.play_signal)
         self.verticalLayout.addWidget(self.another)
@@ -142,8 +157,83 @@ class AnotherWindow(QMainWindow):
 
     def getFreqInt(self, ramp):
         return QInputDialog.getDouble(self, "Change Generator Ramp Time/Frequency","enter a ramp time/frequency", ramp, 0, 1, 4)
-   
+    def averageFrames(self, frames):
+        return QInputDialog.getInt(self, "Change number of averaged frames", "Enter number of frames", frames)
+    def steerAngle(self, angles):
+        return QInputDialog.getDouble(self, "Change steer angle (Degrees)", "Enter an angle (deg)", angles)
+class SpecWindow(QMainWindow):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    def __init__(self, app):
+        super().__init__()
+        self.setObjectName(_fromUtf8("FG"))
+        self.resize(692, 500)
+        self.centralwidget = QtGui.QWidget()
+        self.setCentralWidget(self.centralwidget)
+        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.frame = QtGui.QFrame(self.centralwidget)
+        self.frame.setFrameShape(QtGui.QFrame.NoFrame)
+        self.frame.setFrameShadow(QtGui.QFrame.Plain)
+        self.frame.setObjectName(_fromUtf8("frame"))
+        self.verticalLayout = QtGui.QVBoxLayout(self.frame)
+        self.verticalLayout.setContentsMargins(0,0,0,0)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
 
+        self.specGram = SpectrogramWidget()
+        
+class SpectrogramWidget(pg.PlotWidget):
+    
+    
+    read_collected = QtCore.pyqtSignal(np.ndarray)
+    def __init__(self):
+        super(SpectrogramWidget, self).__init__()
+        self.Fs = 44100
+        self.CHUNKS = 1024
+
+        self.img = pg.ImageItem()
+        self.addItem(self.img)
+
+        self.img_array = np.zeros((1000, int(self.CHUNKS/2+1)))
+
+        # bipolar colormap
+
+        pos = np.array([0., 1., 0.5, 0.25, 0.75])
+        color = np.array([[0,255,255,255], [255,255,0,255], [0,0,0,255], (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
+        cmap = pg.ColorMap(pos, color)
+        lut = cmap.getLookupTable(0.0, 1.0, 256)
+
+        self.img.setLookupTable(lut)
+        self.img.setLevels([-50,40])
+
+        freq = np.arange((self.CHUNKS/2)+1)/(float(self.CHUNKS)/self.Fs)
+        yscale = 1.0/(self.img_array.shape[1]/freq[-1])
+        self.img.scale((1./self.Fs)*self.CHUNKS, yscale)
+
+        self.setLabel('left', 'Frequency', units='Hz')
+
+        self.win = np.hanning(self.CHUNKS)
+        self.show()
+    def update(self, chunk):
+        # normalized, windowed frequencies in data chunk
+
+        spec = np.fft.rfft(chunk*self.win) / self.CHUNKS
+        # get magnitude 
+
+        psd = abs(spec)
+        # convert to dB scale
+
+        psd = 20 * np.log10(psd)
+
+        # roll down one and replace leading edge with new data
+
+        self.img_array = np.roll(self.img_array, -1, 0)
+        self.img_array[-1:] = psd
+
+        self.img.setImage(self.img_array, autoLevels=False)
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         self.w=AnotherWindow(app=self)
@@ -179,7 +269,7 @@ class Ui_MainWindow(object):
         '''
         self.frame.setMinimumWidth(500)
         self.frame.setMaximumWidth(700)
-        self.frame.setMinimumHeight(300)
+        self.frame.setMinimumHeight(500)
         self.frame.setMaximumHeight(500)
         '''
         #self.frame.setGeometry(0,0,700,500)
@@ -206,39 +296,68 @@ class Ui_MainWindow(object):
         
         elems = []
         tmp = []
+        arrows = []
+        
         
         # Digital Signal Processing options (1st Row of params)
         self.function_generator = QtGui.QPushButton("Function Generator")
         self.function_generator.clicked.connect(self.show_new_window)
-        self.function_generator.setFixedHeight(30)
+        self.function_generator.setFixedHeight(50)
+        self.function_generator.setFixedWidth(400)
+
 
         self.input_inputbuffer = QtGui.QPushButton("Plot 1: Input/Input Buffer")
         self.input_inputbuffer.clicked.connect(self.inputbutton)
-        self.input_inputbuffer.setFixedHeight(30)
+        self.input_inputbuffer.setFixedHeight(50)
+        self.input_inputbuffer.setFixedWidth(400)
 
-        self.spectrogram = QtGui.QPushButton("Plot 2: FFT/Spectrogram")
+        self.spectrogram = QtGui.QPushButton("Spectrogram")
         self.spectrogram.clicked.connect(self.spectrogrambutton)
-        self.spectrogram.setFixedHeight(30)
+        self.spectrogram.setFixedHeight(50)
+        self.spectrogram.setFixedWidth(400)
 
-        self.averaging = QtGui.QPushButton("Signal Averaging")
-        self.averaging.clicked.connect(self.avgbutton)
-        self.averaging.setFixedHeight(30)
-
-        self.rangedet = QtGui.QPushButton("Range Detection")
-        self.rangedet.clicked.connect(self.rangebutton)
-        self.rangedet.setFixedHeight(30)
-
-        self.buffertofile = QtGui.QPushButton("Output buffer to file")
+        self.buffertofile = QtGui.QPushButton("Output buffer to WAV file")
         self.buffertofile.clicked.connect(self.bufferfilebutton)
-        self.buffertofile.setFixedHeight(30)
+        self.buffertofile.setFixedHeight(50)
+        self.buffertofile.setFixedWidth(400)
 
-        tmp.append(self.function_generator)
-        tmp.append(self.input_inputbuffer)
-        tmp.append(self.spectrogram)
-        tmp.append(self.averaging)
-        tmp.append(self.rangedet)
-        tmp.append(self.buffertofile)
-        elems.append(tmp)
+        self.loadfile = QtGui.QPushButton("Load WAV file")
+        self.loadfile.clicked.connect(self.loadfilebutton)
+        self.loadfile.setFixedHeight(50)
+        self.loadfile.setFixedWidth(400)
+
+        self.loadSoundcard = QtGui.QPushButton("Interface with soundcard")
+        self.loadSoundcard.clicked.connect(self.loadSoundCard)
+        self.loadSoundcard.setFixedHeight(50)
+        self.loadSoundcard.setFixedWidth(400)
+
+        self.spacebox = QtGui.QLabel(self)
+        self.spacebox.setText("")
+        self.spacebox.setFixedHeight(500)
+
+        self.loadLeftArrow = QtGui.QToolButton()
+        self.loadLeftArrow.setArrowType(QtCore.Qt.LeftArrow)
+        self.loadLeftArrow.clicked.connect(self.clickedLeft)
+
+        self.loadRightArrow = QtGui.QToolButton()
+        self.loadRightArrow.setArrowType(QtCore.Qt.RightArrow)
+        self.loadRightArrow.clicked.connect(self.clickedRight)
+
+        self.textbox1 = QtGui.QLabel(self)
+        self.textbox1.setText('')
+        self.textbox1.setFixedWidth(400)
+
+
+        elems.append([self.function_generator])
+        elems.append([self.input_inputbuffer])
+        elems.append([self.spectrogram])
+        elems.append([self.buffertofile])
+        elems.append([self.loadfile])
+        elems.append([self.loadSoundcard])
+        elems.append([self.spacebox])
+        elems.append([self.loadLeftArrow, self.loadRightArrow])
+        elems.append([self.textbox1])
+
 
 
         # Create the params box
@@ -260,13 +379,18 @@ class Ui_MainWindow(object):
     def bufferfilebutton(self):
         pass
 
+    def loadfilebutton(self):
+        pass
+    
+    def loadSoundCard(self):
+        pass
+    def clickedLeft(self):
+        pass
+    def clickedRight(self):
+        pass
+
     def spectrogrambutton(self):
-        if (self.display2=="fft"):
-            self.display2="spectro"
-            self.FFT_label.setText("Spectrogram")
-        else:
-            self.display2 = "fft"
-            self.FFT_label.setText("FFT")
+        spectroproccess = subprocess.Popen(['python', 'testingspec.py'])
 
 
     def inputbutton(self):
@@ -286,16 +410,34 @@ class Ui_MainWindow(object):
 
         row, col = 0, 0
         for row_array in elems:
+            col = 0
+            row += 1
             for col_elem in row_array:
                 grid.addWidget(col_elem, row, col)
-                #col += 1
-                row += 1
+                col += 1
+                
             
             #row += 1
 
         group_box_settings.setLayout(grid)
 
         return group_box_settings
+    def createGroupRow(self, boxTitle, elems=None):
+        group_box_settings = QtGui.QGroupBox(self)
+        group_box_settings.setTitle(boxTitle)
+        
+        grid = QtGui.QGridLayout()
+        grid.setAlignment(QtCore.Qt.AlignTop)
+
+        row, col = 0, 0
+        for col_elem in elems:
+            grid.addWidget(col_elem, 0, col)
+            col += 1
+            
+            #row += 1
+
+        return grid
+
 
     # Creates a data graph
     def addGraph(self, name, title, state=1):
